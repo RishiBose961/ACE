@@ -1,0 +1,89 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String          @id @default(cuid())
+  username       String          @unique
+  name           String
+  salt           String
+  email          String          @unique
+  avatar         String
+  password       String
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  userInfoSkills UserInfoSkill[]
+  ProjectPost    ProjectPost[]
+  contributions  contributions[]
+
+  likesPost likesPost[]
+
+  followers FollowUser[] @relation("FollowerRelation")
+  following FollowUser[] @relation("FollowingRelation")
+}
+
+model UserInfoSkill {
+  id        String   @id @default(cuid())
+  userId    String
+  users     User     @relation(fields: [userId], references: [id])
+  category  String
+  skills    String[] // An array to store skills like ["React", "Next.js"]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ProjectPost {
+  id           String   @id @default(cuid())
+  userId       String
+  users        User     @relation(fields: [userId], references: [id])
+  title        String
+  description  String
+  projectImage String
+  pcategory    String
+  plink        String
+  prepository  String
+  createdAt    DateTime @default(now())
+
+  contributions contributions[]
+
+  likesPost likesPost[]
+}
+
+model contributions {
+  id        String      @id @default(cuid())
+  userId    String
+  users     User        @relation(fields: [userId], references: [id])
+  projectId String
+  projects  ProjectPost @relation(fields: [projectId], references: [id])
+  date      DateTime    @default(now())
+  count     Int
+  createdAt DateTime    @default(now())
+}
+
+model likesPost {
+  id     String      @id @default(cuid())
+  userId String
+  users  User        @relation(fields: [userId], references: [id])
+  postId String
+  posts  ProjectPost @relation(fields: [postId], references: [id])
+}
+
+model FollowUser {
+  id          String @id @default(cuid())
+  followerId  String
+  followingId String
+
+  follower  User @relation("FollowerRelation", fields: [followerId], references: [id])
+  following User @relation("FollowingRelation", fields: [followingId], references: [id])
+}
